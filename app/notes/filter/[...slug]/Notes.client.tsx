@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
@@ -11,18 +11,12 @@ import Modal from "@/components/Modal/Modal";
 import NoteForm from "@/components/NoteForm/NoteForm";
 import css from "./page.module.css"
 
-
-
 interface NotesClientProps {
-  initialData: FetchNotesResponse;
   tag?: string;
 }
 
-export default function NotesClient({initialData, tag}: NotesClientProps) {
+export default function NotesClient({ tag }: NotesClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
-
   const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,24 +33,22 @@ export default function NotesClient({initialData, tag}: NotesClientProps) {
   
   const validTag = tag?.toLowerCase() === "all" ? undefined : tag;
 
-
-  const {data, isLoading} = useQuery<FetchNotesResponse>({
+  const { data, isLoading } = useQuery<FetchNotesResponse>({
     queryKey: ["notes", validTag, currentPage, searchQuery],
     queryFn: () => fetchNotes(currentPage, searchQuery, validTag),
     placeholderData: keepPreviousData,
-    initialData,
-  })
+  });
 
   const totalPages = data?.totalPages ?? 0;
 
-  
   return (
     <div className={css.app}>
-	    <header className={css.toolbar}>
+      <header className={css.toolbar}>
         <SearchBox value={inputValue} onSearch={handleSearchChange}/>
         {totalPages > 1 && (
-        <Pagination totalNumberOfPages={totalPages} currentActivePage={currentPage} setPage={setCurrentPage} />)}
-		    <button className={css.button} onClick={openModal}>Create note +</button>
+          <Pagination totalNumberOfPages={totalPages} currentActivePage={currentPage} setPage={setCurrentPage} />
+        )}
+        <button className={css.button} onClick={() => setIsModalOpen(true)}>Create note +</button>
       </header>
 
       {isLoading ? (
@@ -64,10 +56,12 @@ export default function NotesClient({initialData, tag}: NotesClientProps) {
       ) : (
         <NoteList notes={data?.notes ?? []} />
       )}
-      {isModalOpen && ( <Modal onClose={closeModal}>
-        <NoteForm onCloseModal={closeModal}/>
-      </Modal>
+
+      {isModalOpen && (
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <NoteForm onCloseModal={() => setIsModalOpen(false)} />
+        </Modal>
       )}
-  </div>
-  )
+    </div>
+  );
 }
